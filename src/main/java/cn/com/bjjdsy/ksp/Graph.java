@@ -596,7 +596,7 @@ public class Graph {
 			boolean isTrans = false;
 			int time = 0;
 			double impedance = 0;
-			if (best.getStations().size() > 2) {// skip start when its transfer
+			if (best.getStations().size() > 1) {// skip start when its transfer
 				Station prev = best.getPrev(last);
 				if (prev.getConnection(last).getDir() == -1) {
 					isTrans = true;
@@ -636,7 +636,6 @@ public class Graph {
 				Line connect = last.getConnection(next);
 				// ---
 				if (connect.getDir() == -1 && isTrans) {
-					
 					newPath.setDist(newPath.getDist() - time);
 					newPath.setImpedance(newPath.getImpedance() - impedance);
 					continue;
@@ -648,6 +647,27 @@ public class Graph {
 				if (connect.getDir() == -1) {
 					// System.out.println(connect.getStart().getID() + "-" +
 					// connect.getEnd().getID());
+					// section untransfer
+					int startCode = connect.getStart().getID();
+					int endCode = connect.getEnd().getID();
+					String key = startCode + ":" + endCode;
+					if (startCode > endCode) {
+						key = endCode + ":" + startCode;
+					}
+
+					if (newPath.getUnTransMap().get(key) != null) {
+						int i = newPath.getUnTransMap().get(key);
+						newPath.getUnTransMap().put(key, i + 1);
+
+					} else {
+						newPath.getUnTransMap().put(key, 1);
+					}
+
+					// same transfer section >1 delete
+					if (newPath.getUnTransMap().get(key) > 1) {
+						break;
+					}
+
 				} else {
 					newPath.addDist(connect.getTime());
 					newPath.addImpedance(connect.getImpedance());

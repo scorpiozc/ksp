@@ -1,7 +1,7 @@
 package cn.com.bjjdsy.ksp;
 
 public class Tester {
-	private static final int PATHS = 5;
+	private static final int PATHS = 30;
 
 	public static void main(String[] args) {
 		Stopwatch timer = new Stopwatch();
@@ -23,14 +23,15 @@ public class Tester {
 
 		// get all shortest paths
 		timer.start();
-//		g.printPaths();
+		g.printPaths();
 
 //		g.printPath(125, 423);
 //		g.printPath(201, 211);
 //		g.printPath(201, 209);
 //		g.printPath(214, 443);
 //		g.printPath(653, 201);
-		g.printPath(9702, 202);
+//		g.printPath(113, 208);
+//		g.printPath(201, 457);
 		timer.stop();
 
 		System.out.printf("Time it takes to print the paths: %.6f seconds\n", timer.time());
