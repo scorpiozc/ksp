@@ -32,6 +32,9 @@ public class Tester {
 //		g.printPath(653, 201);
 //		g.printPath(113, 208);
 //		g.printPath(201, 457);
+//		g.printPath(649, 124);
+//		g.printPath(214, 9441);//line change???  
+//		g.printPath(110, 9055);
 		timer.stop();
 
 		System.out.printf("Time it takes to print the paths: %.6f seconds\n", timer.time());

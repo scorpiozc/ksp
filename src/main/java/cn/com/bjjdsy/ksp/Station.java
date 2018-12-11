@@ -20,6 +20,8 @@ public class Station implements Comparable<Station> {
 	// the neighbors and the lines they correspond to
 	private TreeSet<Station> neighbors;
 	private TreeMap<Station, Line> lines;
+	
+	private int tsCode;
 
 	public TreeMap<Station, Line> getLines() {
 		return lines;
@@ -175,5 +177,13 @@ public class Station implements Comparable<Station> {
 	@Override
 	public int compareTo(Station s) {
 		return ID - s.ID;
+	}
+
+	public int getTsCode() {
+		return tsCode;
+	}
+
+	public void setTsCode(int tsCode) {
+		this.tsCode = tsCode;
 	}
 }

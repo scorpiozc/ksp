@@ -345,12 +345,16 @@ public class Graph {
 			// find the start and end station
 			Station startStation = null, endStation = null;
 			for (int code : transferToID.get(tsCode)) {
-				if ((stats[code].getLine().getID()) == start)
+				if ((stats[code].getLine().getID()) == start) {
 					startStation = stats[code];
+					startStation.setTsCode(tsCode);
+				}
 			}
 			for (int code : transferToID.get(tsCode)) {
-				if ((stats[code].getLine().getID()) == end)
+				if ((stats[code].getLine().getID()) == end) {
 					endStation = stats[code];
+					endStation.setTsCode(tsCode);
+				}
 			}
 
 			// make the new line
@@ -552,6 +556,7 @@ public class Graph {
 		ArrayList<Line> lines = new ArrayList<>();
 		// set up the source
 		Station source = stats[statIDs[start]];
+//		System.out.printf("source station:%d\n", source.getID());
 
 //		fout.printf("source station:%d\n", source.getID());
 
@@ -593,39 +598,40 @@ public class Graph {
 			Path tPath = new Path(best);
 			paths[start][end][pathCounts[start][end]++] = tPath;
 
+			// skip start when its transfer
 			boolean isTrans = false;
 			int time = 0;
 			double impedance = 0;
-			if (best.getStations().size() > 1) {// skip start when its transfer
+			if (best.getStations().size() == 2) {
 				Station prev = best.getPrev(last);
 				if (prev.getConnection(last).getDir() == -1) {
 					isTrans = true;
-
+				}
+			}
+			if (best.getStations().size() > 2) {
+				Station prev = best.getPrev(last);
+				if (prev.getConnection(last).getDir() == -1) {
+					isTrans = true;
 					time = prev.getConnection(last).getTime();
 					best.setDist(best.getDist() + time);
 					impedance = prev.getConnection(last).getImpedance();
 					best.setImpedance(best.getImpedance() + impedance);
-//					paths[start][end][pathCounts[start][end]++] = tPath;
-				} else {
-//					paths[start][end][pathCounts[start][end]++] = best;
 				}
 
 			}
+			// ---
 
 			// add the path
 //			paths[start][end][pathCounts[start][end]++] = best;
-
-			best.getStations().forEach(s -> {
-//				fout.printf("|%s", (s.getID()));
-			});
-//			fout.println();
-
 			// iterate through the neighboring nodes
 //			System.out.println("Neighbors:" + last.getNeighbors().size());
+			boolean isDouble = false;
 			for (Station next : last.getNeighbors()) {
 
 //				fout.printf("station %d neighbors:%d\n", last.getID(), next.getID());
-
+//				if (source.getID() == 118 && (last.getID() == 119 || next.getID() == 553)) {
+				// System.out.printf("station %d neighbors:%d\n", last.getID(), next.getID());
+//				}
 				// if it creates a cycle continue
 				if (best.getStations().contains(next))
 					continue;
@@ -636,8 +642,8 @@ public class Graph {
 				Line connect = last.getConnection(next);
 				// ---
 				if (connect.getDir() == -1 && isTrans) {
-					newPath.setDist(newPath.getDist() - time);
-					newPath.setImpedance(newPath.getImpedance() - impedance);
+//					newPath.setDist(newPath.getDist() - time);
+//					newPath.setImpedance(newPath.getImpedance() - impedance);
 					continue;
 				}
 				// ---
@@ -645,28 +651,6 @@ public class Graph {
 				//
 				int before = newPath.getDist();
 				if (connect.getDir() == -1) {
-					// System.out.println(connect.getStart().getID() + "-" +
-					// connect.getEnd().getID());
-					// section untransfer
-					int startCode = connect.getStart().getID();
-					int endCode = connect.getEnd().getID();
-					String key = startCode + ":" + endCode;
-					if (startCode > endCode) {
-						key = endCode + ":" + startCode;
-					}
-
-					if (newPath.getUnTransMap().get(key) != null) {
-						int i = newPath.getUnTransMap().get(key);
-						newPath.getUnTransMap().put(key, i + 1);
-
-					} else {
-						newPath.getUnTransMap().put(key, 1);
-					}
-
-					// same transfer section >1 delete
-					if (newPath.getUnTransMap().get(key) > 1) {
-						break;
-					}
 
 				} else {
 					newPath.addDist(connect.getTime());
@@ -678,17 +662,31 @@ public class Graph {
 //					System.out.println(before + "-" + after);
 				}
 				// add the path
+
+				int tsCode = last.getTsCode();
+				if (last.getTsCode() != 0) {
+					// delect double transfer
+					if (newPath.getUnTransMap().get(tsCode) == null) {
+						newPath.getUnTransMap().put(tsCode, 0);
+					}
+					// transfer section +1 other +2
+					if (connect.getDir() == -1) {
+						int i = newPath.getUnTransMap().get(tsCode);
+						newPath.getUnTransMap().put(tsCode, i + 1);
+					} else {
+						int i = newPath.getUnTransMap().get(tsCode);
+						newPath.getUnTransMap().put(tsCode, i + 2);
+					}
+					if (newPath.getUnTransMap().get(tsCode) > 3) {
+						isDouble = true;
+						paths[start][end][--pathCounts[start][end]] = null;
+						break;
+					}
+				}
 				enqueue.add(newPath);
 
 			}
 
-//			enqueue.forEach(p -> {
-//				p.getStations().forEach(s -> {
-//					fout.printf("|%s", s.getID());
-//				});
-//				fout.printf("|%s", p.getImpedance());
-//				fout.println();
-//			});
 		}
 
 	}
@@ -761,7 +759,7 @@ public class Graph {
 							}
 							routeStationCode.append(stations.get(lines.size()).getID());
 							if (tList.isEmpty()) {
-								routeLineCode.append(stations.get(lines.size()).getLine().getID());
+								routeLineCode.append(stations.get(lines.size() - 1).getLine().getID());
 							} else {
 								for (int t : tList) {
 									routeLineCode.append(lines.get(t).getStart().getLine().getID() + "-");
@@ -862,7 +860,7 @@ public class Graph {
 				routeStationCode.append(stations.get(lines.size()).getID());
 
 				if (tList.isEmpty()) {
-					routeLineCode.append(stations.get(lines.size()).getLine().getID());
+					routeLineCode.append(stations.get(lines.size() - 1).getLine().getID());
 				} else {
 					for (int t : tList) {
 						routeLineCode.append(lines.get(t).getStart().getLine().getID() + "-");

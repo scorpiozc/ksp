@@ -6,7 +6,7 @@ public class Path implements Comparable<Path> {
 	private ArrayList<Station> stations;
 	private ArrayList<Line> lines;
 	private int dist;
-	private Map<String, Integer> unTransMap;
+	private Map<Integer, Integer> unTransMap;
 
 	public void setDist(int dist) {
 		this.dist = dist;
@@ -34,7 +34,7 @@ public class Path implements Comparable<Path> {
 		impedance = 0;
 		stations = new ArrayList<Station>();
 		lines = new ArrayList<Line>();
-		unTransMap = new HashMap<String, Integer>();
+		unTransMap = new HashMap<Integer, Integer>();
 	}
 
 	/**
@@ -47,7 +47,7 @@ public class Path implements Comparable<Path> {
 		impedance = p.impedance;
 		stations = new ArrayList<Station>();
 		lines = new ArrayList<Line>();
-		unTransMap = new HashMap<String, Integer>();
+		unTransMap = new HashMap<Integer, Integer>();
 		for (Station s : p.stations)
 			stations.add(s);
 		for (Line l : p.lines)
@@ -182,11 +182,11 @@ public class Path implements Comparable<Path> {
 		return true;
 	}
 
-	public Map<String, Integer> getUnTransMap() {
+	public Map<Integer, Integer> getUnTransMap() {
 		return unTransMap;
 	}
 
-	public void setUnTransMap(Map<String, Integer> unTransMap) {
+	public void setUnTransMap(Map<Integer, Integer> unTransMap) {
 		this.unTransMap = unTransMap;
 	}
 }
